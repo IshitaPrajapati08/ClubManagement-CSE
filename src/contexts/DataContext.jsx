@@ -11,14 +11,15 @@ export const useData = () => {
   return context;
 };
 
+// Initial clubs with Srushti as faculty
 const INITIAL_CLUBS = [
   {
     id: '1',
     name: 'Coding Club',
     description: 'Learn programming and build amazing projects',
     facultyId: 'faculty1',
-    facultyName: 'Dr. Smith',
-    department: 'Computer Science',
+    facultyName: 'Srushti',
+    department: 'CSE',
     activities: ['Hackathons', 'Workshops', 'Code Reviews'],
     members: []
   },
@@ -27,10 +28,24 @@ const INITIAL_CLUBS = [
     name: 'Robotics Club',
     description: 'Design and build robots for competitions',
     facultyId: 'faculty2',
-    facultyName: 'Prof. Johnson',
-    department: 'Computer Science',
+    facultyName: 'Srushti',
+    department: 'CSE',
     activities: ['Robot Building', 'Competitions', 'Arduino Projects'],
     members: []
+  }
+];
+
+// Sample initial event
+const INITIAL_EVENTS = [
+  {
+    id: '101',
+    clubId: '1',
+    title: 'Treasure Hunt',
+    description: 'A fun and challenging treasure hunt event for all students.',
+    date: new Date().toISOString(),
+    status: 'approved',
+    participants: [],
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -41,17 +56,18 @@ export const DataProvider = ({ children }) => {
   const [joinRequests, setJoinRequests] = useState([]);
   const [eventRegistrations, setEventRegistrations] = useState([]);
 
-  useEffect(() => {
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      setClubs(JSON.parse(storedClubs));
-    } else {
-      setClubs(INITIAL_CLUBS);
-      localStorage.setItem('clubs', JSON.stringify(INITIAL_CLUBS));
-    }
+  // Save helper
+  const saveToStorage = (key, data) => {
+    localStorage.setItem(key, JSON.stringify(data));
+  };
 
-    const storedEvents = localStorage.getItem('events');
-    if (storedEvents) setEvents(JSON.parse(storedEvents));
+  useEffect(() => {
+    // Overwrite clubs and events on first load
+    setClubs(INITIAL_CLUBS);
+    saveToStorage('clubs', INITIAL_CLUBS);
+
+    setEvents(INITIAL_EVENTS);
+    saveToStorage('events', INITIAL_EVENTS);
 
     const storedRequests = localStorage.getItem('joinRequests');
     if (storedRequests) setJoinRequests(JSON.parse(storedRequests));
@@ -59,10 +75,6 @@ export const DataProvider = ({ children }) => {
     const storedRegistrations = localStorage.getItem('eventRegistrations');
     if (storedRegistrations) setEventRegistrations(JSON.parse(storedRegistrations));
   }, []);
-
-  const saveToStorage = (key, data) => {
-    localStorage.setItem(key, JSON.stringify(data));
-  };
 
   const createClub = (clubData) => {
     const newClub = {

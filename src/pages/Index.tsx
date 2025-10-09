@@ -39,7 +39,12 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--gradient-primary)' }}>
+    <div
+      className="min-h-screen"
+      style={{
+        background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', // gradient blue
+      }}
+    >
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm mb-6">
@@ -59,8 +64,8 @@ const Index = () => {
             return (
               <Card key={feature.role} className="text-center hover:shadow-xl transition-shadow">
                 <CardHeader>
-                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Icon className="w-8 h-8 text-primary" />
+                  <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-4">
+                    <Icon className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle>{feature.title}</CardTitle>
                   <CardDescription>{feature.description}</CardDescription>
@@ -77,7 +82,7 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <Button 
-              className="w-full text-lg py-6" 
+              className="w-full text-lg py-6 bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:from-blue-600 hover:to-blue-800"
               onClick={() => navigate('/login')}
             >
               Login / Sign Up
