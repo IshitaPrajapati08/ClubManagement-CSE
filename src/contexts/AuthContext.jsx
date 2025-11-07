@@ -32,7 +32,10 @@ export const AuthProvider = ({ children }) => {
       const userData = { ...foundUser };
       delete userData.password;
       setUser(userData);
+      // store user and minimal auth token for compatibility with other guards
       localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('role', userData.role);
+      localStorage.setItem('token', `token-${Date.now()}`);
       return { success: true };
     }
     return { success: false, error: 'Invalid credentials' };
@@ -57,7 +60,10 @@ export const AuthProvider = ({ children }) => {
     const userWithoutPassword = { ...newUser };
     delete userWithoutPassword.password;
     setUser(userWithoutPassword);
+    // persist for session and interoperability with other route guards
     localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+    localStorage.setItem('role', userWithoutPassword.role);
+    localStorage.setItem('token', `token-${Date.now()}`);
 
     return { success: true };
   };

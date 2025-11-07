@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, Calendar, Users, CheckCircle, Clock } from 'lucide-react';
+import { LogOut, Calendar, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const StudentDashboard = () => {
@@ -13,6 +13,8 @@ const StudentDashboard = () => {
   const { clubs, events, joinRequests, eventRegistrations, requestJoinClub, registerForEvent } = useData();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState("All Clubs");
 
   const myClubs = clubs.filter(club => club.members?.some(m => m.id === user.id));
   const myRequests = joinRequests.filter(r => r.studentId === user.id);
@@ -25,182 +27,178 @@ const StudentDashboard = () => {
     );
 
     if (alreadyRequested) {
-      toast({ title: 'Already Requested', description: 'You have already requested to join this club', variant: 'destructive' });
+      toast({ title: 'Already Requested', description: 'You already requested to join', variant: 'destructive' });
       return;
     }
 
     const alreadyMember = clubs.find(c => c.id === clubId)?.members?.some(m => m.id === user.id);
     if (alreadyMember) {
-      toast({ title: 'Already a Member', description: 'You are already a member of this club', variant: 'destructive' });
+      toast({ title: 'Already a Member', description: 'You are already in this club', variant: 'destructive' });
       return;
     }
 
     requestJoinClub(clubId);
-    toast({ title: 'Request Sent', description: 'Your join request has been sent to the faculty' });
+    toast({ title: 'Request Sent', description: 'Faculty will review your request' });
   };
 
   const handleRegisterEvent = (eventId) => {
-    const alreadyRegistered = eventRegistrations.some(
-      r => r.eventId === eventId && r.studentId === user.id
-    );
+    const alreadyRegistered = myEvents.some(m => m.eventId === eventId);
 
     if (alreadyRegistered) {
-      toast({ title: 'Already Registered', description: 'You are already registered for this event', variant: 'destructive' });
+      toast({ title: 'Already Registered', description: 'You are already registered', variant: 'destructive' });
       return;
     }
 
     registerForEvent(eventId);
-    toast({ title: 'Registration Successful', description: 'You have been registered for the event' });
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+    toast({ title: 'Registration Successful', description: 'Enjoy the event!' });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-600 to-blue-400 text-black">
+    <div className="min-h-screen bg-white text-black">
+      
       {/* Header */}
-      <header className="border-b border-blue-500">
-        <div className="container mx-auto px-6 py-6 flex justify-between items-center">
+      <header className="border-b bg-blue-600 text-white shadow-sm">
+        <div className="container mx-auto px-6 py-5 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-black">Student Dashboard</h1>
-            <p className="text-black/80 mt-1">Welcome, {user.name}!</p>
+            <h1 className="text-3xl font-bold">Student Dashboard</h1>
+            <p className="text-white/80 mt-1">Welcome, {user.name}</p>
           </div>
-          <Button 
-            variant="secondary" 
-            onClick={handleLogout}
-            className="flex items-center gap-2 bg-white text-black hover:bg-gray-200"
+          <Button
+            variant="secondary"
+            onClick={() => { logout(); navigate('/'); }}
+            className="bg-white text-blue-600 hover:bg-gray-100 font-semibold"
           >
-            <LogOut className="w-4 h-4" /> Logout
+            <LogOut className="w-4 h-4 mr-1" /> Logout
           </Button>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main Tabs */}
       <main className="container mx-auto px-6 py-8">
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8">
-          {['All Clubs', `My Clubs (${myClubs.length})`, 'Events', 'My Requests'].map((tab, idx) => (
+        <div className="flex gap-3 mb-8 overflow-auto">
+          {['All Clubs', `My Clubs (${myClubs.length})`, 'Events', 'My Requests'].map((tab) => (
             <Button
               key={tab}
-              variant="outline"
-              className="flex-1 py-3 font-semibold rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 text-black hover:from-blue-600 hover:to-blue-800"
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+                activeTab === tab
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-200 text-gray-700 hover:bg-blue-200'
+              }`}
             >
               {tab}
             </Button>
           ))}
         </div>
 
-        {/* All Clubs */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          {clubs.map(club => (
-            <Card key={club.id} className="hover:shadow-2xl transition-shadow rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-black font-bold">{club.name}</CardTitle>
-                <CardDescription className="text-black/80">{club.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-black/70">
-                    <Users className="w-4 h-4" /> Faculty: {club.facultyName}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-black/70">
-                    <Users className="w-4 h-4" /> {club.members?.length || 0} members
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {club.activities?.map((activity, idx) => (
-                      <Badge key={idx} variant="secondary">{activity}</Badge>
-                    ))}
-                  </div>
-                  <Button
-                    className={`w-full py-2 rounded-xl font-semibold ${
-                      myClubs.some(c => c.id === club.id)
-                        ? 'bg-gray-300 text-black cursor-not-allowed'
-                        : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-black'
-                    }`}
-                    disabled={myClubs.some(c => c.id === club.id)}
-                    onClick={() => handleJoinClub(club.id)}
-                  >
-                    {myClubs.some(c => c.id === club.id) ? 'Already Joined' : 'Request to Join'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Events */}
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          {approvedEvents.map(event => {
-            const club = clubs.find(c => c.id === event.clubId);
-            const isRegistered = myEvents.some(r => r.eventId === event.id);
-
-            return (
-              <Card key={event.id} className="hover:shadow-2xl rounded-xl transition-shadow">
+        {/* ✅ All Clubs */}
+        {activeTab === 'All Clubs' && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {clubs.map(club => (
+              <Card key={club.id} className="shadow-lg rounded-xl border border-blue-100">
                 <CardHeader>
-                  <CardTitle className="text-black font-bold">{event.title}</CardTitle>
-                  <CardDescription className="text-black/80">{event.description}</CardDescription>
+                  <CardTitle className="font-bold text-blue-700">{club.name}</CardTitle>
+                  <CardDescription>{club.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-black/70">
-                      <Users className="w-4 h-4" /> {club?.name}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-black/70">
-                      <Calendar className="w-4 h-4" /> {new Date(event.date).toLocaleDateString()}
-                    </div>
-                    <div className="text-sm text-black/70">{event.participants?.length || 0} participants</div>
-                    <Button
-                      className={`w-full py-2 rounded-xl font-semibold ${
-                        isRegistered
-                          ? 'bg-gray-300 text-black cursor-not-allowed'
-                          : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-black'
-                      }`}
-                      disabled={isRegistered}
-                      onClick={() => handleRegisterEvent(event.id)}
-                    >
-                      {isRegistered ? 'Already Registered' : 'Register'}
-                    </Button>
+                <CardContent className="space-y-3">
+                  
+                  {/* Faculty Mentor */}
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <Users className="w-4 h-4" /> Faculty Mentor: {club.facultyName}
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
 
-        {/* Join Requests */}
-        <div className="space-y-4">
-          {myRequests.length > 0 ? myRequests.map(request => {
-            const club = clubs.find(c => c.id === request.clubId);
-            return (
-              <Card key={request.id} className="rounded-xl shadow-md">
-                <CardContent className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold text-black">{club?.name}</div>
-                    <div className="text-sm text-black/70">{new Date(request.createdAt).toLocaleDateString()}</div>
+                  {/* Member Count */}
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <Users className="w-4 h-4" /> {club.members?.length || 0} Active Members
                   </div>
-                  <Badge
-                    variant={
-                      request.status === 'approved' ? 'default' :
-                      request.status === 'rejected' ? 'destructive' :
-                      'secondary'
-                    }
-                    className="flex items-center gap-1 px-3 py-1 rounded-full"
+
+                  {/* Activities Tags */}
+                  {club.activities?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {club.activities.map((act, index) => (
+                        <Badge key={index} className="bg-blue-100 text-blue-700">
+                          {act}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={() => handleJoinClub(club.id)}
+                    disabled={myClubs.some(c => c.id === club.id)}
+                    className={`w-full mt-3 ${
+                      myClubs.some(c => c.id === club.id)
+                        ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
                   >
-                    {request.status === 'pending' && <Clock className="w-3 h-3" />}
-                    {request.status === 'approved' && <CheckCircle className="w-3 h-3" />}
-                    {request.status}
-                  </Badge>
+                    {myClubs.some(c => c.id === club.id) ? 'Joined ✅' : 'Join Club'}
+                  </Button>
                 </CardContent>
               </Card>
-            );
-          }) : (
-            <Card className="text-center py-8 rounded-xl">
-              No join requests yet
-            </Card>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {/* ✅ Events */}
+        {activeTab === 'Events' && (
+          <div className="grid gap-6 md:grid-cols-2">
+            {approvedEvents.map(event => {
+              const club = clubs.find(c => c.id === event.clubId);
+              const registered = myEvents.some(m => m.eventId === event.id);
+
+              return (
+                <Card key={event.id} className="shadow-lg rounded-xl border border-blue-100">
+                  <CardHeader>
+                    <CardTitle className="font-bold text-blue-700">{event.title}</CardTitle>
+                    <CardDescription>{event.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-gray-600 text-sm">{club?.name}</p>
+                    <p className="text-gray-600 text-sm flex items-center gap-2">
+                      <Calendar className="w-4 h-4" /> {new Date(event.date).toLocaleDateString()}
+                    </p>
+
+                    <Button
+                      onClick={() => handleRegisterEvent(event.id)}
+                      disabled={registered}
+                      className={`w-full ${
+                        registered
+                          ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                    >
+                      {registered ? 'Registered ✅' : 'Register'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ✅ My Requests */}
+        {activeTab === 'My Requests' && (
+          <div className="space-y-4">
+            {myRequests.length > 0 ? myRequests.map(req => {
+              const club = clubs.find(c => c.id === req.clubId);
+              return (
+                <Card key={req.id} className="rounded-xl shadow-md p-4 border border-blue-100 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold text-blue-700">{club?.name}</h3>
+                    <p className="text-xs text-gray-500">{new Date(req.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <Badge className="px-3 py-1 capitalize">
+                    {req.status}
+                  </Badge>
+                </Card>
+              );
+            }) : (
+              <p className="text-gray-500 text-center">No requests yet 🚫</p>
+            )}
+          </div>
+        )}
+
       </main>
     </div>
   );

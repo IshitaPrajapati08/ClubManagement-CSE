@@ -15,11 +15,26 @@ import { useNavigate } from 'react-router-dom';
 
 const FacultyDashboard = () => {
   const { user, logout } = useAuth();
-  const { clubs, events, joinRequests, createEvent, updateEvent, deleteEvent, updateClub, updateJoinRequest } = useData();
+  // Added createClub here
+  const {
+    clubs,
+    events,
+    joinRequests,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    updateClub,
+    updateJoinRequest,
+    createClub
+  } = useData();
+
   const { toast } = useToast();
   const navigate = useNavigate();
+
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isClubDialogOpen, setIsClubDialogOpen] = useState(false); // new
   const [editingClub, setEditingClub] = useState(null);
+
   const [eventForm, setEventForm] = useState({
     title: '',
     description: '',
@@ -27,9 +42,15 @@ const FacultyDashboard = () => {
     clubId: ''
   });
 
+  const [clubForm, setClubForm] = useState({
+    name: '',
+    description: '',
+    activities: ''
+  }); // new
+
   const myClubs = clubs.filter(c => c.facultyId === user.id);
   const myEvents = events.filter(e => myClubs.some(c => c.id === e.clubId));
-  const pendingRequests = joinRequests.filter(r => 
+  const pendingRequests = joinRequests.filter(r =>
     myClubs.some(c => c.id === r.clubId) && r.status === 'pending'
   );
 
@@ -46,6 +67,31 @@ const FacultyDashboard = () => {
     });
     setIsEventDialogOpen(false);
     setEventForm({ title: '', description: '', date: '', clubId: '' });
+  };
+
+  const handleCreateClub = (e) => {
+    e.preventDefault();
+
+    // prepare activities array from comma-separated input
+    const activitiesArray = clubForm.activities
+      ? clubForm.activities.split(',').map(a => a.trim()).filter(Boolean)
+      : [];
+
+    createClub({
+      name: clubForm.name,
+      description: clubForm.description,
+      activities: activitiesArray,
+      facultyId: user.id,
+      facultyName: user.name
+    });
+
+    toast({
+      title: 'Club Created',
+      description: 'Club added successfully and visible to students'
+    });
+
+    setIsClubDialogOpen(false);
+    setClubForm({ name: '', description: '', activities: '' });
   };
 
   const handleUpdateClub = (clubId, updates) => {
@@ -103,7 +149,64 @@ const FacultyDashboard = () => {
             <TabsTrigger value="requests">Requests ({pendingRequests.length})</TabsTrigger>
           </TabsList>
 
+          {/* -------------------- CLUBS TAB (with Create Club) -------------------- */}
           <TabsContent value="clubs" className="space-y-4">
+            {/* Create Club Button */}
+            <div className="flex justify-end mb-4">
+              <Dialog open={isClubDialogOpen} onOpenChange={setIsClubDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-600 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Club
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Club</DialogTitle>
+                    <DialogDescription>Add a new club under your faculty supervision</DialogDescription>
+                  </DialogHeader>
+
+                  <form onSubmit={handleCreateClub} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="clubName">Club Name</Label>
+                      <Input
+                        id="clubName"
+                        value={clubForm.name}
+                        onChange={(e) => setClubForm({ ...clubForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="clubDescription">Description</Label>
+                      <Textarea
+                        id="clubDescription"
+                        value={clubForm.description}
+                        onChange={(e) =>
+                          setClubForm({ ...clubForm, description: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Activities (comma separated)</Label>
+                      <Input
+                        placeholder="e.g. Workshops, Meetings, Competitions"
+                        value={clubForm.activities}
+                        onChange={(e) =>
+                          setClubForm({ ...clubForm, activities: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full bg-blue-600 text-white">Create Club</Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               {myClubs.map(club => (
                 <Card key={club.id}>
@@ -142,6 +245,7 @@ const FacultyDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* -------------------- EVENTS TAB -------------------- */}
           <TabsContent value="events" className="space-y-4">
             <div className="flex justify-end mb-4">
               <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
@@ -216,8 +320,8 @@ const FacultyDashboard = () => {
                         <div className="flex gap-2">
                           <Badge variant={
                             event.status === 'approved' ? 'default' :
-                            event.status === 'rejected' ? 'destructive' :
-                            'secondary'
+                              event.status === 'rejected' ? 'destructive' :
+                                'secondary'
                           }>
                             {event.status}
                           </Badge>
@@ -253,6 +357,7 @@ const FacultyDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* -------------------- REQUESTS TAB -------------------- */}
           <TabsContent value="requests" className="space-y-4">
             <Card>
               <CardHeader>
