@@ -4,6 +4,7 @@ import { useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, Calendar, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -130,17 +131,51 @@ const StudentDashboard = () => {
                     </div>
                   )}
 
-                  <Button
-                    onClick={() => handleJoinClub(club.id)}
-                    disabled={myClubs.some(c => c.id === club.id)}
-                    className={`w-full mt-3 ${
-                      myClubs.some(c => c.id === club.id)
-                        ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
-                  >
-                    {myClubs.some(c => c.id === club.id) ? 'Joined ✅' : 'Join Club'}
-                  </Button>
+                    <div className="flex gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost">View</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>{club.name}</DialogTitle>
+                            <DialogDescription>{club.description}</DialogDescription>
+                          </DialogHeader>
+                          <div className="mt-4 space-y-3">
+                            <div className="text-sm"><strong>Faculty Mentor:</strong> {club.facultyName}</div>
+                            <div className="text-sm"><strong>Department:</strong> {club.department || 'N/A'}</div>
+                            <div className="text-sm"><strong>Activities:</strong> {club.activities?.join(', ') || 'None'}</div>
+                            <div className="text-sm"><strong>Members ({club.members?.length || 0}):</strong>
+                              <div className="mt-2 space-y-1">
+                                {club.members?.length > 0 ? club.members.map(m => (
+                                  <div key={m.id} className="text-sm text-muted-foreground">{m.name} ({m.email})</div>
+                                )) : <div className="text-sm text-muted-foreground">No members yet</div>}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4 flex gap-2">
+                            <Button onClick={() => { handleJoinClub(club.id); }} disabled={myClubs.some(c => c.id === club.id)}>
+                              {myClubs.some(c => c.id === club.id) ? 'Joined ✅' : 'Join Club'}
+                            </Button>
+                            <Button variant="secondary" onClick={() => { /* close handled by Dialog component automatically */ }}>
+                              Close
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Button
+                        onClick={() => handleJoinClub(club.id)}
+                        disabled={myClubs.some(c => c.id === club.id)}
+                        className={`w-full ${
+                          myClubs.some(c => c.id === club.id)
+                            ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                      >
+                        {myClubs.some(c => c.id === club.id) ? 'Joined ✅' : 'Join Club'}
+                      </Button>
+                    </div>
                 </CardContent>
               </Card>
             ))}
