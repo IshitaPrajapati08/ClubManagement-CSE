@@ -53,6 +53,9 @@ const FacultyDashboard = () => {
   const pendingRequests = joinRequests.filter(r =>
     myClubs.some(c => c.id === r.clubId) && r.status === 'pending'
   );
+  const acceptedRequests = joinRequests.filter(r =>
+    myClubs.some(c => c.id === r.clubId) && r.status === 'approved'
+  );
 
   const handleCreateEvent = (e) => {
     e.preventDefault();
@@ -362,6 +365,7 @@ const FacultyDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Pending Join Requests</CardTitle>
+                <CardDescription>Review and respond to student requests</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -397,6 +401,38 @@ const FacultyDashboard = () => {
                   {pendingRequests.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       No pending requests
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Accepted Requests</CardTitle>
+                <CardDescription>Students you have approved</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {acceptedRequests.map(request => {
+                    const club = clubs.find(c => c.id === request.clubId);
+                    return (
+                      <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <div className="font-medium">{request.studentName}</div>
+                          <div className="text-sm text-muted-foreground">{request.studentEmail}</div>
+                          <div className="text-sm text-muted-foreground">Club: {club?.name}</div>
+                          <div className="text-xs text-muted-foreground">Approved on: {request.updatedAt ? new Date(request.updatedAt).toLocaleDateString() : ''}</div>
+                        </div>
+                        <div>
+                          <Badge variant="secondary">Approved</Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {acceptedRequests.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No accepted requests yet
                     </div>
                   )}
                 </div>

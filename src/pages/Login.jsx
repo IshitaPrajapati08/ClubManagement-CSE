@@ -32,43 +32,45 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    if (isLogin) {
-      // attempt login
-      const res = login(formData.email, formData.password, role);
-      if (res.success) {
-        toast({
-          title: "Login Successful!",
-          description: "Welcome back!",
-          variant: "default",
-        });
+    (async () => {
+      setIsLoading(true);
+      if (isLogin) {
+        // attempt login
+        const res = await login(formData.email, formData.password, role);
+        if (res.success) {
+          toast({
+            title: "Login Successful!",
+            description: "Welcome back!",
+            variant: "default",
+          });
 
-        navigate(
-          role === "student" ? "/student" : role === "faculty" ? "/faculty" : "/hod"
-        );
+          navigate(
+            role === "student" ? "/student" : role === "faculty" ? "/faculty" : "/hod"
+          );
+        } else {
+          toast({ title: "Login Failed", description: res.error || "Invalid credentials", variant: "destructive" });
+        }
       } else {
-        toast({ title: "Login Failed", description: res.error || "Invalid credentials", variant: "destructive" });
-      }
-    } else {
-      // signup
-      const payload = { ...formData, role };
-      const res = signup(payload);
-      if (res.success) {
-        toast({
-          title: "Signup Successful!",
-          description: "Account created!",
-          variant: "default",
-        });
+        // signup
+        const payload = { ...formData, role };
+        const res = await signup(payload);
+        if (res.success) {
+          toast({
+            title: "Signup Successful!",
+            description: "Account created!",
+            variant: "default",
+          });
 
-        navigate(
-          role === "student" ? "/student" : role === "faculty" ? "/faculty" : "/hod"
-        );
-      } else {
-        toast({ title: "Signup Failed", description: res.error || "Could not create account", variant: "destructive" });
+          navigate(
+            role === "student" ? "/student" : role === "faculty" ? "/faculty" : "/hod"
+          );
+        } else {
+          toast({ title: "Signup Failed", description: res.error || "Could not create account", variant: "destructive" });
+        }
       }
-    }
 
-    setIsLoading(false);
+      setIsLoading(false);
+    })();
   };
 
   const roleIcons = { student: GraduationCap, faculty: Users, hod: UserCog };

@@ -14,9 +14,9 @@ const StudentDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("All Clubs");
+  const [activeTab, setActiveTab] = useState('all');
 
-  const myClubs = clubs.filter(club => club.members?.some(m => m.id === user.id));
+  const myClubs = clubs.filter(club => club.members?.some(m => String(m.id) === String(user.id)));
   const myRequests = joinRequests.filter(r => r.studentId === user.id);
   const myEvents = eventRegistrations.filter(r => r.studentId === user.id);
   const approvedEvents = events.filter(e => e.status === 'approved');
@@ -76,25 +76,32 @@ const StudentDashboard = () => {
       {/* Main Tabs */}
       <main className="container mx-auto px-6 py-8">
         <div className="flex gap-3 mb-8 overflow-auto">
-          {['All Clubs', `My Clubs (${myClubs.length})`, 'Events', 'My Requests'].map((tab) => (
+          {[
+            { key: 'all', label: 'All Clubs' },
+            { key: 'my', label: `My Clubs (${myClubs.length})` },
+            { key: 'events', label: 'Events' },
+            { key: 'requests', label: 'My Requests' }
+          ].map((t) => (
             <Button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                activeTab === tab
+                activeTab === t.key
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-gray-200 text-gray-700 hover:bg-blue-200'
               }`}
             >
-              {tab}
+              {t.label}
             </Button>
           ))}
         </div>
 
         {/* ✅ All Clubs */}
-        {activeTab === 'All Clubs' && (
+        {activeTab === 'all' && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {clubs.map(club => (
+            {clubs
+              .filter(club => !club.members?.some(m => m.id === user.id))
+              .map(club => (
               <Card key={club.id} className="shadow-lg rounded-xl border border-blue-100">
                 <CardHeader>
                   <CardTitle className="font-bold text-blue-700">{club.name}</CardTitle>
@@ -141,7 +148,7 @@ const StudentDashboard = () => {
         )}
 
         {/* ✅ Events */}
-        {activeTab === 'Events' && (
+  {activeTab === 'events' && (
           <div className="grid gap-6 md:grid-cols-2">
             {approvedEvents.map(event => {
               const club = clubs.find(c => c.id === event.clubId);
@@ -178,7 +185,7 @@ const StudentDashboard = () => {
         )}
 
         {/* ✅ My Requests */}
-        {activeTab === 'My Requests' && (
+        {activeTab === 'requests' && (
           <div className="space-y-4">
             {myRequests.length > 0 ? myRequests.map(req => {
               const club = clubs.find(c => c.id === req.clubId);
@@ -195,6 +202,45 @@ const StudentDashboard = () => {
               );
             }) : (
               <p className="text-gray-500 text-center">No requests yet 🚫</p>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'my' && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {myClubs.length > 0 ? myClubs.map(club => (
+              <Card key={club.id} className="shadow-lg rounded-xl border border-blue-100">
+                <CardHeader>
+                  <CardTitle className="font-bold text-blue-700">{club.name}</CardTitle>
+                  <CardDescription>{club.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <Users className="w-4 h-4" /> Faculty Mentor: {club.facultyName}
+                  </div>
+
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <Users className="w-4 h-4" /> {club.members?.length || 0} Active Members
+                  </div>
+
+                  {club.activities?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {club.activities.map((act, index) => (
+                        <Badge key={index} className="bg-blue-100 text-blue-700">{act}</Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button
+                    disabled
+                    className="w-full mt-3 bg-gray-300 text-gray-700 cursor-not-allowed"
+                  >
+                    Joined ✅
+                  </Button>
+                </CardContent>
+              </Card>
+            )) : (
+              <p className="text-gray-500 text-center">No joined clubs yet.</p>
             )}
           </div>
         )}
